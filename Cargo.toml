@@ -9,4 +9,4 @@ proc-macro = true
 [dependencies]
 quote = "1.0"
 syn = { version = "1.0", features= ["full", "fold"] }
-unicode_info = { path = "../unicode-info" }
+unicode_info = { git = "https://github.com/jswalden/unicode-info.git" }
