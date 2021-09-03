@@ -9,10 +9,10 @@ use unicode_info::table;
 
 fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2::TokenStream {
     let table::TableSplit {
-        t1,
-        t1_elem_type,
-        t2,
-        t2_elem_type,
+        index1,
+        index1_elem_type,
+        index2,
+        index2_elem_type,
         shift,
     } = table::split_table(&data.bmp_folding_index);
 
@@ -22,8 +22,14 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
         &data.bmp_folding_table,
     );
 
-    let folding_index_tables =
-        index_table::generate_index_tables(&t1, t1_elem_type, "fold1", &t2, t2_elem_type, "fold2");
+    let folding_index_tables = index_table::generate_index_tables(
+        &index1,
+        index1_elem_type,
+        "fold1",
+        &index2,
+        index2_elem_type,
+        "fold2",
+    );
 
     quote! {
         // The table of Deltas, into which the index tables index.

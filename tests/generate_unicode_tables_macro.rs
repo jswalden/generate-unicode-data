@@ -4,10 +4,9 @@ generate_unicode_tables!();
 
 #[test]
 fn check_generate_unicode_tables() {
-    // These constants were derived not from testing and finding out, but from
-    // comments at end of the respective sections in DerivedCoreProperties.txt.
-    assert_eq!(id_start_count, 131_482);
-    assert_eq!(id_continue_count, 134_434);
-
-    assert_eq!(folding_shift, 5, "at present");
+    // Check for expected current values.
+    assert_eq!(foldinfo.len(), 96);
+    assert_eq!(folding_shift, 5);
+    assert_eq!(fold1.len(), 2048);
+    assert_eq!(fold2.len(), 1856);
 }
