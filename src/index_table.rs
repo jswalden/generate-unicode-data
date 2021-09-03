@@ -1,3 +1,5 @@
+//! Generate code for two index tables generated from a single input inde.
+
 use proc_macro2::Ident;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;

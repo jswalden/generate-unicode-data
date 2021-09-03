@@ -1,3 +1,5 @@
+//! Generate a constant table of elements.
+
 use proc_macro2::Ident;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
@@ -7,7 +9,7 @@ use quote::quote;
 /// `table`.
 pub fn generate_table<T>(data_type: TokenStream, name: &str, table: &Vec<T>) -> TokenStream
 where
-    T: quote::ToTokens + Copy,
+    T: quote::ToTokens,
 {
     let name = Ident::new(name, Span::call_site());
     let n = table.len();
