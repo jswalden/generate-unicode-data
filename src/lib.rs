@@ -1,12 +1,17 @@
 extern crate proc_macro;
 use quote::quote;
 
+mod ascii_table;
 mod generate_table;
 mod index_table;
 
 use unicode_info::bmp;
+use unicode_info::bmp::{
+    CharacterInfo, FLAG_SPACE, FLAG_UNICODE_ID_CONTINUE_ONLY, FLAG_UNICODE_ID_START,
+};
 use unicode_info::case_folding;
 use unicode_info::code_point_table;
+use unicode_info::constants::{DOLLAR_SIGN, LOW_LINE};
 use unicode_info::derived_core_properties;
 use unicode_info::table;
 
@@ -89,11 +94,48 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
     }
 }
 
+fn generate_ascii_lookup_tables(bmp: &bmp::BMPInfo) -> proc_macro2::TokenStream {
+    let index = &bmp.index;
+    let table = &bmp.table;
+
+    let is_id_compat = |code: u32| [DOLLAR_SIGN, LOW_LINE].contains(&code);
+
+    let is_id_start = |code: u32| {
+        let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
+        flags & FLAG_UNICODE_ID_START != 0 || is_id_compat(code)
+    };
+
+    let is_id_continue = |code: u32| {
+        let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
+        flags & FLAG_UNICODE_ID_CONTINUE_ONLY != 0 || is_id_start(code)
+    };
+
+    let is_space = |code: u32| {
+        let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
+        flags & FLAG_SPACE != 0
+    };
+
+    let isidstart_table = ascii_table::generate_ascii_table("isidstart", &is_id_start);
+
+    let isident_table = ascii_table::generate_ascii_table("isident", &is_id_continue);
+
+    let isspace_table = ascii_table::generate_ascii_table("isspace", &is_space);
+
+    quote! {
+        #isidstart_table
+
+        #isident_table
+
+        #isspace_table
+    }
+}
+
 #[proc_macro]
 pub fn generate_unicode_tables(_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let cpt = code_point_table::generate_code_point_table();
     let dcp = derived_core_properties::process_derived_core_properties();
     let cfd = case_folding::process_case_folding();
+    let bmp = bmp::generate_bmp_info(&cpt, &dcp);
 
     // Character info table and two index tables.
     let charinfo_code = generate_charinfo_tables(&cpt, &dcp);
@@ -101,10 +143,26 @@ pub fn generate_unicode_tables(_input: proc_macro::TokenStream) -> proc_macro::T
     // Folding table and two index tables.
     let folding_code = generate_folding_tables(&cfd);
 
+    let ascii_lookup_code = generate_ascii_lookup_tables(&bmp);
+
     let code = quote! {
         #charinfo_code
 
         #folding_code
+
+        // IsIdentifier{Start,Part}NonBMP functions
+
+        // ChangesWhenUpperCasedSpecialCasing
+        // LengthUpperCaseSpecialCasing
+        // AppendUpperCaseSpecialCasing
+
+        // ASCII lookup tables:
+        // - isidstart
+        // - isident
+        // - isspace
+        #ascii_lookup_code
+
+        // Latin-1 lookup tables
     };
 
     code.into()
