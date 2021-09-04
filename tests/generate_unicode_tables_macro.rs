@@ -19,8 +19,47 @@ fn check_folding_tables() {
 }
 
 #[test]
-fn check_isidentifier_start_part_code() {
-    // IsIdentifier{Start,Part}NonBMP functions
+fn check_isidentifier_start_non_bmp() {
+    // This code point constitutes a full range.
+    const TIRHUTA_OM: u32 = 0x114C7;
+    assert_eq!(is_identifier_start_non_bmp(TIRHUTA_OM), true);
+
+    assert_eq!(is_identifier_start_non_bmp(TIRHUTA_OM - 1), false);
+    assert_eq!(is_identifier_start_non_bmp(TIRHUTA_OM + 1), false);
+}
+
+#[test]
+fn check_isidentifier_part_non_bmp() {
+    // This code point constitutes a full range.
+    const COMBINING_GRANTHA_LETTER_A: u32 = 0x11370;
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A - 1),
+        false
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 0),
+        true
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 1),
+        true
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 2),
+        true
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 3),
+        true
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 4),
+        true
+    );
+    assert_eq!(
+        is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A + 5),
+        false
+    );
 }
 
 #[test]

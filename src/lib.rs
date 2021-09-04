@@ -5,6 +5,7 @@ mod ascii_tables;
 mod generate_table;
 mod index_table;
 mod latin1_tables;
+mod supplemental_identifier_function;
 
 use std::convert::TryFrom;
 use unicode_info::bmp;
@@ -15,6 +16,7 @@ use unicode_info::case_folding;
 use unicode_info::code_point_table;
 use unicode_info::constants::{DOLLAR_SIGN, LOW_LINE, MAX_BMP};
 use unicode_info::derived_core_properties;
+use unicode_info::non_bmp;
 use unicode_info::table;
 
 fn generate_charinfo_tables(
@@ -96,6 +98,28 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
     }
 }
 
+fn generate_isidentifier_start_part_functions(
+    non_bmp: &non_bmp::NonBMPInfo,
+) -> proc_macro2::TokenStream {
+    let is_identifier_start_fn =
+        supplemental_identifier_function::generate_supplemental_identifer_function(
+            "is_identifier_start_non_bmp",
+            &non_bmp.id_start_set,
+        );
+
+    let is_identifier_part_fn =
+        supplemental_identifier_function::generate_supplemental_identifer_function(
+            "is_identifier_part_non_bmp",
+            &non_bmp.id_continue_set,
+        );
+
+    quote! {
+        #is_identifier_start_fn
+
+        #is_identifier_part_fn
+    }
+}
+
 fn generate_ascii_lookup_tables(bmp: &bmp::BMPInfo) -> proc_macro2::TokenStream {
     let index = &bmp.index;
     let table = &bmp.table;
@@ -156,6 +180,7 @@ pub fn generate_unicode_tables(_input: proc_macro::TokenStream) -> proc_macro::T
     let cpt = code_point_table::generate_code_point_table();
     let dcp = derived_core_properties::process_derived_core_properties();
     let bmp = bmp::generate_bmp_info(&cpt, &dcp);
+    let non_bmp = non_bmp::generate_non_bmp_info(&cpt);
     let cfd = case_folding::process_case_folding();
 
     // Character info table and two index tables.
@@ -163,6 +188,8 @@ pub fn generate_unicode_tables(_input: proc_macro::TokenStream) -> proc_macro::T
 
     // Folding table and two index tables.
     let folding_code = generate_folding_tables(&cfd);
+
+    let isidentifier_start_part_code = generate_isidentifier_start_part_functions(&non_bmp);
 
     let ascii_lookup_code = generate_ascii_lookup_tables(&bmp);
 
@@ -173,7 +200,7 @@ pub fn generate_unicode_tables(_input: proc_macro::TokenStream) -> proc_macro::T
 
         #folding_code
 
-        // IsIdentifier{Start,Part}NonBMP functions
+        #isidentifier_start_part_code
 
         // ChangesWhenUpperCasedSpecialCasing
         // LengthUpperCaseSpecialCasing
