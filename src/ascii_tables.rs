@@ -1,9 +1,11 @@
+//! Generate ASCII lookup tables.
+
 use proc_macro2::Ident;
 use proc_macro2::Span;
 use quote::quote;
 
-/// Generate a `const` ASCII lookup table with the given name, populated using
-/// the given predicate function.
+/// Generate a `static` boolean ASCII lookup table with the given name,
+/// populated using the given predicate function.
 pub fn generate_ascii_table(
     table_name: &str,
     predicate: &dyn Fn(u32) -> bool,
