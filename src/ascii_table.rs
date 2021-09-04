@@ -15,7 +15,7 @@ pub fn generate_ascii_table(
     let elems = (0x00..=0x7Fu32).map(predicate);
 
     quote! {
-        const #table_name: [bool; #table_length] = [
+        static #table_name: [bool; #table_length] = [
             #( #elems ),*
         ];
     }

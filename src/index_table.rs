@@ -21,7 +21,7 @@ fn generate_index_table(
     };
 
     // Rust presently will not infer an array type (including length) for
-    // `const`s, so we have to include it manually.
+    // `static`s, so we have to include it manually.
     let n = index.len();
 
     // It's unfortunate there's no clean way to perform this element-narrowing.
@@ -40,7 +40,7 @@ fn generate_index_table(
         }
     };
 
-    quote! {const #index_name: [#element_type; #n] = [
+    quote! {static #index_name: [#element_type; #n] = [
         #elems
     ];}
 }

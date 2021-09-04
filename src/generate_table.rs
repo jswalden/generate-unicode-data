@@ -18,7 +18,7 @@ where
     let name = Ident::new(name, Span::call_site());
     let n = table.len();
 
-    quote! {const #name: [#data_type; #n] = [
+    quote! {static #name: [#data_type; #n] = [
         #( #table ),*
     ];}
 }

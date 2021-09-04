@@ -49,7 +49,7 @@ fn generate_charinfo_tables(
         #info_table
 
         // The shift used in indexing into the two index tables.
-        const charinfo_shift: u32 = #shift;
+        static charinfo_shift: u32 = #shift;
 
         // Index tables used to compute the index of the right CharacterInfo in
         // the info table.
@@ -86,7 +86,7 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
         #folding_table
 
         // The shift used in indexing into the two index tables.
-        const folding_shift: u32 = #shift;
+        static folding_shift: u32 = #shift;
 
         // Index tables used to compute the index of the right Delta in the
         // folding table.
