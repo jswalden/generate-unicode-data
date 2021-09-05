@@ -30,7 +30,7 @@ fn check_isidentifier_start_non_bmp() {
 
 #[test]
 fn check_isidentifier_part_non_bmp() {
-    // This code point constitutes a full range.
+    // 0x11370..=0x11374 is a full range.
     const COMBINING_GRANTHA_LETTER_A: u32 = 0x11370;
     assert_eq!(
         is_identifier_part_non_bmp(COMBINING_GRANTHA_LETTER_A - 1),

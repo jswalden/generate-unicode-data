@@ -9,9 +9,7 @@ mod supplemental_identifier_function;
 
 use std::convert::TryFrom;
 use unicode_info::bmp;
-use unicode_info::bmp::{
-    CharacterInfo, FLAG_SPACE, FLAG_UNICODE_ID_CONTINUE_ONLY, FLAG_UNICODE_ID_START,
-};
+use unicode_info::bmp::CharacterInfo;
 use unicode_info::case_folding;
 use unicode_info::code_point_table;
 use unicode_info::constants::{DOLLAR_SIGN, LOW_LINE, MAX_BMP};
@@ -128,17 +126,17 @@ fn generate_ascii_lookup_tables(bmp: &bmp::BMPInfo) -> proc_macro2::TokenStream 
 
     let is_id_start = |code: u32| {
         let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
-        flags & FLAG_UNICODE_ID_START != 0 || is_id_compat(code)
+        flags.is_unicode_id_start() || is_id_compat(code)
     };
 
     let is_id_continue = |code: u32| {
         let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
-        flags & FLAG_UNICODE_ID_CONTINUE_ONLY != 0 || is_id_start(code)
+        flags.is_unicode_id_continue_only() || is_id_start(code)
     };
 
     let is_space = |code: u32| {
         let CharacterInfo { flags, .. } = table[index[code as usize] as usize];
-        flags & FLAG_SPACE != 0
+        flags.is_space()
     };
 
     let isidstart_table = ascii_tables::generate_ascii_table("isidstart", &is_id_start);
