@@ -201,8 +201,39 @@ fn generate_length_upper_case_special_casing_fun(
     }
 }
 
-fn generate_append_upper_cased_special_casing_fun() -> proc_macro2::TokenStream {
-    quote!()
+fn generate_append_upper_case_special_casing_fun(
+    unconditional_toupper: &special_casing::UnconditionalMapping,
+) -> proc_macro2::TokenStream {
+    let cases: Vec<proc_macro2::TokenStream> = unconditional_toupper
+        .into_iter()
+        .map(|(code, replacements)| {
+            let code = *code as u16;
+            let replacements_len = replacements.len();
+            let replacements = replacements
+                .into_iter()
+                .map(|code| *code as u16)
+                .collect::<Vec<u16>>();
+
+            quote! {
+                #code => {
+                    ptr.copy_from_nonoverlapping(
+                        [ #( #replacements ),* ].as_ptr(),
+                        #replacements_len
+                    );
+                },
+            }
+        })
+        .collect();
+
+    quote! {
+        unsafe fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: usize) {
+            let ptr = elements.add(index);
+            match code {
+                #( #cases )*
+                _ => panic!("bad input"),
+            }
+        }
+    }
 }
 
 pub fn generate_special_casing_functions(
@@ -214,13 +245,14 @@ pub fn generate_special_casing_functions(
     let length_upper_case_special_casing_fun =
         generate_length_upper_case_special_casing_fun(&scd.unconditional_toupper);
 
-    let append_upper_cased_special_casing_fun = generate_append_upper_cased_special_casing_fun();
+    let append_upper_case_special_casing_fun =
+        generate_append_upper_case_special_casing_fun(&scd.unconditional_toupper);
 
     quote! {
         #changes_when_upper_cased_special_casing_fun
 
         #length_upper_case_special_casing_fun
 
-        #append_upper_cased_special_casing_fun
+        #append_upper_case_special_casing_fun
     }
 }

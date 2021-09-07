@@ -1,7 +1,9 @@
 use generate_unicode_data::generate_unicode_tables;
 #[cfg(test)]
 use unicode_info::constants::{
+    COMBINING_ACUTE_ACCENT, COMBINING_DIAERESIS, COMBINING_MACRON_BELOW, GREEK_CAPITAL_LETTER_IOTA,
     GREEK_SMALL_LETTER_IOTA_WITH_DIALYTIKA_AND_TONOS, GREEK_SMALL_LETTER_UPSILON_WITH_PSILI,
+    LATIN_CAPITAL_LETTER_H, LATIN_CAPITAL_LETTER_S, LATIN_SMALL_LETTER_H_WITH_LINE_BELOW,
     LATIN_SMALL_LETTER_SHARP_S,
 };
 
@@ -104,8 +106,60 @@ fn check_length_upper_case_special_casing() {
 }
 
 #[test]
-fn check_casing_code() {
-    // AppendUpperCaseSpecialCasing
+fn check_append_upper_case_special_casing() {
+    const BAD: u16 = 0xFFFF;
+    const OFFSET: usize = 3;
+
+    macro_rules! test_append {
+        ( $code:ident, [ $replacement:ident $( , $replacements:ident )+ $(,)? ] $(,)? ) => {
+            {
+                let mut v = vec![0; 8];
+                v.fill(BAD);
+
+                unsafe {
+                    append_upper_case_special_casing(
+                        $code as u16,
+                        v.as_mut_ptr(),
+                        OFFSET,
+                    );
+                }
+
+                for i in 0..OFFSET {
+                    assert_eq!(v[i], BAD);
+                }
+
+                let mut count = 1;
+                assert_eq!(v[OFFSET], $replacement as u16);
+                {
+                    $(
+                        count += 1;
+                        assert_eq!(v[OFFSET + count - 1], $replacements as u16);
+                    )+
+                }
+
+                for i in OFFSET + count..8 {
+                    assert_eq!(v[i], BAD);
+                }
+            }
+        }
+    }
+
+    test_append!(
+        LATIN_SMALL_LETTER_SHARP_S,
+        [LATIN_CAPITAL_LETTER_S, LATIN_CAPITAL_LETTER_S]
+    );
+    test_append!(
+        GREEK_SMALL_LETTER_IOTA_WITH_DIALYTIKA_AND_TONOS,
+        [
+            GREEK_CAPITAL_LETTER_IOTA,
+            COMBINING_DIAERESIS,
+            COMBINING_ACUTE_ACCENT
+        ]
+    );
+    test_append!(
+        LATIN_SMALL_LETTER_H_WITH_LINE_BELOW,
+        [LATIN_CAPITAL_LETTER_H, COMBINING_MACRON_BELOW]
+    );
 }
 
 #[test]
