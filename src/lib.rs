@@ -38,6 +38,23 @@ fn generate_charinfo_tables(
     let info_table = generate_table::generate_table(
         quote!(::unicode_info::bmp::CharacterInfo),
         "charinfo",
+        r#"
+A table of `CharacterInfo`s.  Every BMP code point is associated with one
+such `CharacterInfo`, at index determined using the code point,
+`CHARINFO_SHIFT`, and `charinfo_index1` and `charinfo_index2`.  Specifically,
+
+```text
+let mask = (1usize << CHARINFO_SHIFT) - 1;
+for code_point in 0..=0xFFFFu16 {
+    let index1_entry = charinfo_index1[code_point >> CHARINFO_SHIFT];
+    let index1_index_component = index1_entry << CHARINFO_SHIFT;
+    let mask_component = code_point & mask;
+    // ...and the `CharacterInfo` pertinent to `code_point` is therefore:
+    let cinfo = charinfo[index2[index1_index_component + mask_component]];
+}
+```
+"#
+        .trim(),
         &table,
     );
 
@@ -54,8 +71,8 @@ fn generate_charinfo_tables(
         // The table of CharacterInfos, into which the index tables index.
         #info_table
 
-        // The shift used in indexing into the two index tables.
-        static charinfo_shift: u32 = #shift;
+        /// The shift used in indexing into the two index tables.
+        const CHARINFO_SHIFT: u32 = #shift;
 
         // Index tables used to compute the index of the right CharacterInfo in
         // the info table.
@@ -75,6 +92,24 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
     let folding_table = generate_table::generate_table(
         quote!(::unicode_info::case_folding::Delta),
         "foldinfo",
+        r#"
+A table of `Delta`s, each a value that can be added (with wrapping) to some BMP
+code point to determine the code point to which it case-folds.  The precise
+`Delta` that applies to a given code point is determined using the code point,
+`FOLDING_SHIFT`, and `folding_index1` and `folding_index2`.  Specifically,
+
+```text
+let mask = (1usize << FOLDING_SHIFT) - 1;
+for code_point in 0..=0xFFFFu16 {
+    let index1_entry = folding_index1[code_point >> FOLDING_SHIFT];
+    let index1_index_component = index1_entry << FOLDING_SHIFT;
+    let mask_component = code_point & mask;
+    // ...and the `Delta` pertinent to `code_point` is therefore:
+    let delta = foldinfo[index2[index1_index_component + mask_component]];
+}
+```
+"#
+        .trim(),
         &data.bmp_folding_table,
     );
 
@@ -92,7 +127,7 @@ fn generate_folding_tables(data: &case_folding::CaseFoldingData) -> proc_macro2:
         #folding_table
 
         // The shift used in indexing into the two index tables.
-        static folding_shift: u32 = #shift;
+        const FOLDING_SHIFT: u32 = #shift;
 
         // Index tables used to compute the index of the right Delta in the
         // folding table.
@@ -106,12 +141,28 @@ fn generate_isidentifier_start_part_functions(
     let is_identifier_start_fn =
         supplemental_identifier_function::generate_supplemental_identifer_function(
             "is_identifier_start_non_bmp",
+            r#"
+Return true iff the provided _non-BMP_ code point may validly appear as the
+first character in an identifier.
+
+It is an error to call this function with a BMP code point, i.e. one whose value
+is 0xFFFF or lower.
+            "#
+            .trim(),
             &non_bmp.id_start_set,
         );
 
     let is_identifier_part_fn =
         supplemental_identifier_function::generate_supplemental_identifer_function(
             "is_identifier_part_non_bmp",
+            r#"
+Return true iff the provided _non-BMP_ code point may validly appear within an
+identifier after its first character.
+
+It is an error to call this function with a BMP code point, i.e. one whose value
+is 0xFFFF or lower.
+                        "#
+            .trim(),
             &non_bmp.id_continue_set,
         );
 
@@ -143,11 +194,38 @@ fn generate_ascii_lookup_tables(bmp: &bmp::BMPInfo) -> proc_macro2::TokenStream 
         flags.is_space()
     };
 
-    let isidstart_table = ascii_tables::generate_ascii_table("isidstart", &is_id_start);
+    let isidstart_table = ascii_tables::generate_ascii_table(
+        "isidstart",
+        r#"
+A lookup table storing at index `i` whether the ASCII code point with value `i`
+is matched by the ECMAScript IdentifierStart production, allowing it to appear
+at the start of an identifier.
+    "#
+        .trim(),
+        &is_id_start,
+    );
 
-    let isident_table = ascii_tables::generate_ascii_table("isident", &is_id_continue);
+    let isident_table = ascii_tables::generate_ascii_table(
+        "isident",
+        r#"
+A lookup table storing at index `i` whether the ASCII code point with value `i`
+is matched by the ECMAScript IdentifierPart production, allowing it to appear
+within an identifier after its starting character.  (This is the same as
+`idstart` except that numbers are permitted.)
+        "#
+        .trim(),
+        &is_id_continue,
+    );
 
-    let isspace_table = ascii_tables::generate_ascii_table("isspace", &is_space);
+    let isspace_table = ascii_tables::generate_ascii_table(
+        "isspace",
+        r#"
+A lookup table storing at index `i` whether the ASCII code point with value `i`
+matches either of the ECMAScript WhiteSpace or LineTerminator productions.
+        "#
+        .trim(),
+        &is_space,
+    );
 
     quote! {
         #isidstart_table
@@ -169,8 +247,14 @@ fn generate_latin1_lookup_tables(bmp: &bmp::BMPInfo) -> proc_macro2::TokenStream
             .expect("Latin-1 lowercases to Latin-1")
     };
 
-    let latin1_to_lower_case_table =
-        latin1_tables::generate_latin1_table("latin1_to_lower_case_table", &to_lower_case);
+    let latin1_to_lower_case_table = latin1_tables::generate_latin1_table(
+        "latin1_to_lower_case_table",
+        r#"
+A lookup table storing at index `i` the value of the lowercase form of the code
+point with value `i`.
+        "#,
+        &to_lower_case,
+    );
 
     quote! {
         #latin1_to_lower_case_table

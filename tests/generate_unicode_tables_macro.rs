@@ -12,7 +12,7 @@ generate_unicode_tables!();
 #[test]
 fn check_charinfo_tables() {
     assert_eq!(charinfo.len(), 176);
-    assert_eq!(charinfo_shift, 6);
+    assert_eq!(CHARINFO_SHIFT, 6);
     assert_eq!(charinfo_index1.len(), 1024);
     assert_eq!(charinfo_index2.len(), 11584);
 }
@@ -20,7 +20,7 @@ fn check_charinfo_tables() {
 #[test]
 fn check_folding_tables() {
     assert_eq!(foldinfo.len(), 96);
-    assert_eq!(folding_shift, 5);
+    assert_eq!(FOLDING_SHIFT, 5);
     assert_eq!(folding_index1.len(), 2048);
     assert_eq!(folding_index2.len(), 1856);
 }

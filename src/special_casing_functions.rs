@@ -140,6 +140,21 @@ fn generate_changes_when_upper_cased_special_casing_fun(
     }
 
     quote! {
+        /// Given a code point, return `true` iff its uppercased form consists
+        /// of multiple code points.
+        ///
+        /// Most uppercased code points consist only of a single code point:
+        /// 'a' -> 'A', ':' -> ':' (i.e. no transformation), etc.  A relative
+        /// few expand to more than one code point.  Perhaps most notoriously in
+        /// the Western world U+00DF LATIN SMALL LETTER SHARP S, "ß", uppercases
+        /// to "SS".  This function returns true for such code points:
+        ///
+        /// ```
+        /// assert!(!changes_when_upper_cased_special_casing('a' as u16));
+        /// assert!(!changes_when_upper_cased_special_casing(':' as u16));
+        ///
+        /// assert!(changes_when_upper_cased_special_casing('ß' as u16));
+        /// ```
         fn changes_when_upper_cased_special_casing(code: u16) -> bool {
             let code = code as u32;
 
@@ -192,6 +207,18 @@ fn generate_length_upper_case_special_casing_fun(
         .collect();
 
     quote! {
+        /// Given a code point for which
+        /// `changes_when_upper_cased_special_casing` returns true,
+        /// return the number of code points that constitute its uppercased
+        /// form.
+        ///
+        /// ```
+        /// assert!(length_upper_case_special_casing('ß' as u16), 2); // SS
+        /// ```
+        ///
+        /// Behavior is undefined if this function is called with a code point
+        /// that doesn't pass this gauntlet, ergo does not have special
+        /// uppercasing behavior.
         fn length_upper_case_special_casing(code: u16) -> usize {
             match code {
                 #( #cases )*
@@ -226,6 +253,16 @@ fn generate_append_upper_case_special_casing_fun(
         .collect();
 
     quote! {
+        /// Given a code point for which
+        /// `changes_when_upper_cased_special_casing` returns true,  write the
+        /// code points that constitute its uppercased form to `elements.  It is
+        /// presumed that properly-owned memory exists at these addresses --
+        /// typically by calling `length_upper_case_special_casing` and using
+        /// the value it returns to provide such memory.
+        ///
+        /// Behavior is undefined if this function is called with a code point
+        /// for which `changes_when_upper_cased_special_casing` returns false,
+        /// that does not have special uppercasing behavior.
         unsafe fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: usize) {
             let ptr = elements.add(index);
             match code {

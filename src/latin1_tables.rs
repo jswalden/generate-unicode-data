@@ -8,6 +8,7 @@ use quote::quote;
 /// populated using the given predicate function.
 pub fn generate_latin1_table(
     table_name: &str,
+    doc: &str,
     predicate: &dyn Fn(u32) -> u8,
 ) -> proc_macro2::TokenStream {
     let table_name = Ident::new(table_name, Span::call_site());
@@ -17,6 +18,7 @@ pub fn generate_latin1_table(
     let elems = (0x00..=0xFFu32).map(predicate);
 
     quote! {
+        #[doc = #doc]
         static #table_name: [u8; #table_length] = [
             #( #elems ),*
         ];

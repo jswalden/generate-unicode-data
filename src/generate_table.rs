@@ -10,6 +10,7 @@ use quote::quote;
 pub fn generate_table<T>(
     data_type: TokenStream,
     name: &str,
+    doc: &str,
     table: &Vec<T>,
 ) -> proc_macro2::TokenStream
 where
@@ -18,7 +19,9 @@ where
     let name = Ident::new(name, Span::call_site());
     let n = table.len();
 
-    quote! {static #name: [#data_type; #n] = [
+    quote! {
+        #[doc = #doc]
+        static #name: [#data_type; #n] = [
         #( #table ),*
     ];}
 }
