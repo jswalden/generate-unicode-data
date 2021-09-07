@@ -1,4 +1,6 @@
 use generate_unicode_data::generate_unicode_tables;
+#[cfg(test)]
+use unicode_info::constants::LATIN_SMALL_LETTER_SHARP_S;
 
 generate_unicode_tables!();
 
@@ -63,8 +65,17 @@ fn check_isidentifier_part_non_bmp() {
 }
 
 #[test]
+fn check_changes_when_upper_cased_special_casing() {
+    assert_eq!(changes_when_upper_cased_special_casing('a' as u16), false);
+
+    assert_eq!(
+        changes_when_upper_cased_special_casing(LATIN_SMALL_LETTER_SHARP_S as u16),
+        true
+    );
+}
+
+#[test]
 fn check_casing_code() {
-    // ChangesWhenUpperCasedSpecialCasing
     // LengthUpperCaseSpecialCasing
     // AppendUpperCaseSpecialCasing
 }
