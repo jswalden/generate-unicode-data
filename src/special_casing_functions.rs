@@ -158,8 +158,47 @@ fn generate_changes_when_upper_cased_special_casing_fun(
     }
 }
 
-fn generate_length_upper_cased_special_casing_fun() -> proc_macro2::TokenStream {
-    quote!()
+fn generate_length_upper_case_special_casing_fun(
+    unconditional_toupper: &special_casing::UnconditionalMapping,
+) -> proc_macro2::TokenStream {
+    // We could, C++-style, generate a zillion `code => len,` cases.  But we
+    // have very few distinct `len`, and Rust provides more concise, readable
+    // `code1 | code2 | ... => len` syntax.  Reorder the mappings to group all
+    // replacements of identical length together, group by replacement length,
+    // then generate one match-arm per replacement length.
+    let mut unconditional_toupper: Vec<(&u32, &Vec<u32>)> =
+        unconditional_toupper.into_iter().collect();
+    unconditional_toupper
+        .sort_by(|left, right| (left.1.len(), left.0).cmp(&(right.1.len(), right.0)));
+
+    let cases: Vec<proc_macro2::TokenStream> = unconditional_toupper
+        .into_iter()
+        .group_by(|(_code, replacements)| replacements.len())
+        .into_iter()
+        .map(|(replacement_len, codes)| {
+            let codes: Vec<_> = codes
+                .into_iter()
+                .map(|(code, _)| {
+                    let code = *code as u16;
+                    quote! {
+                        #code
+                    }
+                })
+                .collect();
+            quote! {
+                #( #codes )|* => #replacement_len,
+            }
+        })
+        .collect();
+
+    quote! {
+        fn length_upper_case_special_casing(code: u16) -> usize {
+            match code {
+                #( #cases )*
+                _ => panic!("bad input"),
+            }
+        }
+    }
 }
 
 fn generate_append_upper_cased_special_casing_fun() -> proc_macro2::TokenStream {
@@ -172,14 +211,15 @@ pub fn generate_special_casing_functions(
     let changes_when_upper_cased_special_casing_fun =
         generate_changes_when_upper_cased_special_casing_fun(&scd.unconditional_toupper);
 
-    let length_upper_cased_special_casing_fun = generate_length_upper_cased_special_casing_fun();
+    let length_upper_case_special_casing_fun =
+        generate_length_upper_case_special_casing_fun(&scd.unconditional_toupper);
 
     let append_upper_cased_special_casing_fun = generate_append_upper_cased_special_casing_fun();
 
     quote! {
         #changes_when_upper_cased_special_casing_fun
 
-        #length_upper_cased_special_casing_fun
+        #length_upper_case_special_casing_fun
 
         #append_upper_cased_special_casing_fun
     }

@@ -1,6 +1,9 @@
 use generate_unicode_data::generate_unicode_tables;
 #[cfg(test)]
-use unicode_info::constants::LATIN_SMALL_LETTER_SHARP_S;
+use unicode_info::constants::{
+    GREEK_SMALL_LETTER_IOTA_WITH_DIALYTIKA_AND_TONOS, GREEK_SMALL_LETTER_UPSILON_WITH_PSILI,
+    LATIN_SMALL_LETTER_SHARP_S,
+};
 
 generate_unicode_tables!();
 
@@ -72,11 +75,36 @@ fn check_changes_when_upper_cased_special_casing() {
         changes_when_upper_cased_special_casing(LATIN_SMALL_LETTER_SHARP_S as u16),
         true
     );
+    assert_eq!(
+        changes_when_upper_cased_special_casing(
+            GREEK_SMALL_LETTER_IOTA_WITH_DIALYTIKA_AND_TONOS as u16
+        ),
+        true
+    );
+    assert_eq!(
+        changes_when_upper_cased_special_casing(GREEK_SMALL_LETTER_UPSILON_WITH_PSILI as u16),
+        true
+    );
+}
+
+#[test]
+fn check_length_upper_case_special_casing() {
+    assert_eq!(
+        length_upper_case_special_casing(LATIN_SMALL_LETTER_SHARP_S as u16),
+        2
+    );
+    assert_eq!(
+        length_upper_case_special_casing(GREEK_SMALL_LETTER_IOTA_WITH_DIALYTIKA_AND_TONOS as u16),
+        3
+    );
+    assert_eq!(
+        length_upper_case_special_casing(GREEK_SMALL_LETTER_UPSILON_WITH_PSILI as u16),
+        2
+    );
 }
 
 #[test]
 fn check_casing_code() {
-    // LengthUpperCaseSpecialCasing
     // AppendUpperCaseSpecialCasing
 }
 
