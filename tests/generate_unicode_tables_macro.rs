@@ -116,30 +116,31 @@ fn check_append_upper_case_special_casing() {
                 let mut v = vec![0; 8];
                 v.fill(BAD);
 
+                let number_written = {
+                    let mut n = 1usize; // replacement
+                    $(
+                        let _ = &$replacements;
+                        n += 1;
+                    )+
+                    n
+                };
+
+                let mut index = OFFSET;
                 unsafe {
                     append_upper_case_special_casing(
                         $code as u16,
                         v.as_mut_ptr(),
-                        OFFSET,
+                        &mut index as *mut usize,
                     );
                 }
 
-                for i in 0..OFFSET {
-                    assert_eq!(v[i], BAD);
-                }
+                assert_eq!(index, OFFSET + number_written);
 
-                let mut count = 1;
-                assert_eq!(v[OFFSET], $replacement as u16);
-                {
-                    $(
-                        count += 1;
-                        assert_eq!(v[OFFSET + count - 1], $replacements as u16);
-                    )+
-                }
-
-                for i in OFFSET + count..8 {
-                    assert_eq!(v[i], BAD);
-                }
+                assert!(v[0..OFFSET].iter().all(|unit| *unit as u16 == BAD));
+                assert_eq!(v[OFFSET..OFFSET + number_written],
+                           [$replacement as u16, $( $replacements as u16 ),+ ],
+                           "replacement units");
+                assert!(v[OFFSET + number_written..8].iter().all(|unit| *unit as u16 == BAD));
             }
         }
     }

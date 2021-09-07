@@ -247,6 +247,7 @@ fn generate_append_upper_case_special_casing_fun(
                         [ #( #replacements ),* ].as_ptr(),
                         #replacements_len
                     );
+                    index.write(#replacements_len as usize + index.read())
                 },
             }
         })
@@ -255,16 +256,19 @@ fn generate_append_upper_case_special_casing_fun(
     quote! {
         /// Given a code point for which
         /// `changes_when_upper_cased_special_casing` returns true,  write the
-        /// code points that constitute its uppercased form to `elements.  It is
-        /// presumed that properly-owned memory exists at these addresses --
-        /// typically by calling `length_upper_case_special_casing` and using
+        /// code points that constitute its uppercased form to
+        /// `elements[*index]`, incrementing `*index` by the number of code
+        /// points written.
+        ///
+        /// It is presumed that properly-owned memory exists at these addresses
+        /// -- typically by calling `length_upper_case_special_casing` and using
         /// the value it returns to provide such memory.
         ///
         /// Behavior is undefined if this function is called with a code point
         /// for which `changes_when_upper_cased_special_casing` returns false,
         /// that does not have special uppercasing behavior.
-        unsafe fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: usize) {
-            let ptr = elements.add(index);
+        unsafe fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: *mut usize) {
+            let ptr = elements.add(index.read());
             match code {
                 #( #cases )*
                 _ => panic!("bad input"),
