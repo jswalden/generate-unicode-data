@@ -4,6 +4,8 @@ use proc_macro2::Ident;
 use proc_macro2::Span;
 use quote::quote;
 
+const LATIN1: std::ops::RangeInclusive<u32> = 0x00..=0xFFu32;
+
 /// Generate a `static` boolean ASCII lookup table with the given name,
 /// populated using the given predicate function.
 pub fn generate_latin1_table(
@@ -13,9 +15,9 @@ pub fn generate_latin1_table(
 ) -> proc_macro2::TokenStream {
     let table_name = Ident::new(table_name, Span::call_site());
 
-    let table_length = (0x00..=0xFFu32).clone().count();
+    let table_length = LATIN1.count();
 
-    let elems = (0x00..=0xFFu32).map(predicate);
+    let elems = LATIN1.map(predicate);
 
     quote! {
         #[doc = #doc]
