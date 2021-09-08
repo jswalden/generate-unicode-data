@@ -113,8 +113,7 @@ fn check_append_upper_case_special_casing() {
     macro_rules! test_append {
         ( $code:ident, [ $replacement:ident $( , $replacements:ident )+ $(,)? ] $(,)? ) => {
             {
-                let mut v = vec![0; 8];
-                v.fill(BAD);
+                let mut v = vec![BAD; 8];
 
                 let number_written = {
                     let mut n = 1usize; // replacement
