@@ -87,15 +87,13 @@ fn generate_changes_when_upper_cased_special_casing_fun(
     // Partition the 64K set of BMP code points into 16 4K buckets, then check
     // for matches in each bucket.
     let mut range_tests = vec![];
-    for (_, code_points) in unconditional_code_points
-        .into_iter()
-        .group_by(|code| {
-            const CHUNK_SIZE: u32 = 0x1000;
-            let code = *code;
-            let start = code - (code % CHUNK_SIZE);
-            (start, start + CHUNK_SIZE)
-        })
-        .into_iter()
+    for (_, code_points) in Itertools::group_by(unconditional_code_points.into_iter(), |code| {
+        const CHUNK_SIZE: u32 = 0x1000;
+        let code = *code;
+        let start = code - (code % CHUNK_SIZE);
+        (start, start + CHUNK_SIZE)
+    })
+    .into_iter()
     {
         let matches: CodePointSet = code_points.into_iter().collect();
         if matches.is_empty() {
@@ -111,15 +109,13 @@ fn generate_changes_when_upper_cased_special_casing_fun(
 
             // Otherwise split into further sub-ranges of smaller size.`
             let mut inner_tests = vec![];
-            for (_, inner_code_points) in matches
-                .into_iter()
-                .group_by(|code| {
-                    const INNER_CHUNK_SIZE: u32 = 0x100;
-                    let code = *code;
-                    let start = code - (code % INNER_CHUNK_SIZE);
-                    (start, start + INNER_CHUNK_SIZE)
-                })
-                .into_iter()
+            for (_, inner_code_points) in Itertools::group_by(matches.into_iter(), |code| {
+                const INNER_CHUNK_SIZE: u32 = 0x100;
+                let code = *code;
+                let start = code - (code % INNER_CHUNK_SIZE);
+                (start, start + INNER_CHUNK_SIZE)
+            })
+            .into_iter()
             {
                 let inner_matches: CodePointSet = inner_code_points.into_iter().collect();
                 if inner_matches.is_empty() {
