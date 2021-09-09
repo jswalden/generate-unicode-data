@@ -10,5 +10,4 @@ proc-macro = true
 itertools = "0.10"
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0", features= ["full", "fold"] }
 unicode_info = { git = "https://github.com/jswalden/unicode-info.git" }
