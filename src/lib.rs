@@ -74,6 +74,7 @@ for code_point in 0..=0xFFFFu16 {
         #info_table
 
         /// The shift used in indexing into the two index tables.
+        #[no_mangle]
         const CHARINFO_SHIFT: u32 = #shift;
 
         // Index tables used to compute the index of the right CharacterInfo in
@@ -129,6 +130,7 @@ for code_point in 0..=0xFFFFu16 {
         #folding_table
 
         // The shift used in indexing into the two index tables.
+        #[no_mangle]
         const FOLDING_SHIFT: u32 = #shift;
 
         // Index tables used to compute the index of the right Delta in the

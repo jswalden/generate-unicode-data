@@ -20,6 +20,7 @@ pub fn generate_ascii_table(
     let elems = ASCII.map(predicate);
 
     quote! {
+        #[no_mangle]
         #[doc = #doc]
         static #table_name: [bool; #table_length] = [
             #( #elems ),*

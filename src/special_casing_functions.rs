@@ -151,7 +151,8 @@ fn generate_changes_when_upper_cased_special_casing_fun(
         ///
         /// assert!(changes_when_upper_cased_special_casing('ß' as u16));
         /// ```
-        pub fn changes_when_upper_cased_special_casing(code: u16) -> bool {
+        #[no_mangle]
+        pub extern "C" fn changes_when_upper_cased_special_casing(code: u16) -> bool {
             let code = code as u32;
 
             // Exclude all code points outside the smallest range encompassing
@@ -215,7 +216,8 @@ fn generate_length_upper_case_special_casing_fun(
         /// Behavior is undefined if this function is called with a code point
         /// that doesn't pass this gauntlet, ergo does not have special
         /// uppercasing behavior.
-        pub fn length_upper_case_special_casing(code: u16) -> usize {
+        #[no_mangle]
+        pub extern "C" fn length_upper_case_special_casing(code: u16) -> usize {
             match code {
                 #( #cases )*
                 _ => panic!("bad input"),
@@ -263,7 +265,8 @@ fn generate_append_upper_case_special_casing_fun(
         /// Behavior is undefined if this function is called with a code point
         /// for which `changes_when_upper_cased_special_casing` returns false,
         /// that does not have special uppercasing behavior.
-        pub unsafe fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: *mut usize) {
+        #[no_mangle]
+        pub unsafe extern "C" fn append_upper_case_special_casing(code: u16, elements: *mut u16, index: *mut usize) {
             let ptr = elements.add(index.read());
             match code {
                 #( #cases )*

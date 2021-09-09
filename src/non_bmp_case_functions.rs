@@ -141,8 +141,9 @@ For a non-BMP code point whose UTF-16 decomposition consists of `lead` and
 
   quote! {
     #[doc = #doc]
+    #[no_mangle]
     #[inline]
-    pub fn #name(lead: u16, trail: u16) -> bool {
+    pub extern "C" fn #name(lead: u16, trail: u16) -> bool {
       #( #tests )*
 
       false
@@ -218,8 +219,9 @@ different from `trail`.
 
   quote! {
     #[doc = #doc]
+    #[no_mangle]
     #[inline]
-    pub fn #name(lead: u16, trail: u16) -> u16 {
+    pub extern "C" fn #name(lead: u16, trail: u16) -> u16 {
       #( #tests )*
 
       trail

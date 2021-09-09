@@ -40,9 +40,12 @@ fn generate_index_table(
         }
     };
 
-    quote! {static #index_name: [#element_type; #n] = [
-        #elems
-    ];}
+    quote! {
+        #[no_mangle]
+        static #index_name: [#element_type; #n] = [
+            #elems
+        ];
+    }
 }
 
 pub fn generate_index_tables(

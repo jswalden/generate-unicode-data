@@ -20,8 +20,10 @@ where
     let n = table.len();
 
     quote! {
+        #[no_mangle]
         #[doc = #doc]
         static #name: [#data_type; #n] = [
         #( #table ),*
-    ];}
+        ];
+    }
 }

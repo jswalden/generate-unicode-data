@@ -13,8 +13,9 @@ pub fn generate_supplemental_identifer_function(
     let ranges: Vec<_> = int_ranges::int_ranges(set).collect();
 
     quote! {
+        #[no_mangle]
         #[doc = #doc]
-        pub fn #name(code: u32) -> bool {
+        pub extern "C" fn #name(code: u32) -> bool {
             #( #ranges )*
             return false;
         }

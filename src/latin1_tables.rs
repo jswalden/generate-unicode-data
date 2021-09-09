@@ -20,6 +20,7 @@ pub fn generate_latin1_table(
     let elems = LATIN1.map(predicate);
 
     quote! {
+        #[no_mangle]
         #[doc = #doc]
         static #table_name: [u8; #table_length] = [
             #( #elems ),*
